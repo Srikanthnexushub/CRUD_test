@@ -1,20 +1,24 @@
 package org.example.service;
 
-import org.example.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.example.dto.LoginRequest;
+import org.example.dto.LoginResponse;
+import org.example.dto.UserUpdateRequest;
+import org.example.entity.User;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserRegistrationResponse registerUser(UserRegistrationRequest request);
+    void registerUser(String username, String email, String password);
 
-    LoginResponse authenticateUser(LoginRequest request);
+    LoginResponse authenticateUser(LoginRequest request, HttpServletRequest httpRequest);
 
-    List<UserResponse> getAllUsers(String currentUsername);
+    List<User> getAllUsers(String currentUsername);
 
-    UserResponse getUserById(Long id, String currentUsername);
+    User getUserById(Long id, String currentUsername);
 
-    UserResponse updateUser(Long id, UserUpdateRequest request, String currentUsername);
+    User updateUser(Long id, UserUpdateRequest request, String currentUsername);
 
     void deleteUser(Long id, String currentUsername);
 

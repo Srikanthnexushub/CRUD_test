@@ -8,9 +8,14 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://app:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false
+      },
+      '/ws': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true
       }
     }
   },

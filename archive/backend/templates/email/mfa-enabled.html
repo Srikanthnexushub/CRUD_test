@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{email/base :: layout}">
+<body>
+    <div th:fragment="content">
+        <h2 style="color: #28a745;">✅ Two-Factor Authentication Enabled</h2>
+
+        <div class="alert-box success">
+            <strong>Your account is now more secure!</strong>
+        </div>
+
+        <p>Hello <span th:text="${user.username}">User</span>,</p>
+
+        <p>Two-factor authentication (2FA) has been successfully enabled on your account.</p>
+
+        <table class="details-table">
+            <tr>
+                <td>Enabled At:</td>
+                <td th:text="${timestamp}">2026-01-29 10:00:00</td>
+            </tr>
+            <tr>
+                <td>IP Address:</td>
+                <td th:text="${ipAddress}">192.168.1.1</td>
+            </tr>
+            <tr>
+                <td>Backup Codes:</td>
+                <td>10 codes generated</td>
+            </tr>
+        </table>
+
+        <div class="alert-box info">
+            <p><strong>Important Reminders:</strong></p>
+            <ul style="margin: 10px 0;">
+                <li>Save your backup codes in a secure location</li>
+                <li>You'll need your authenticator app for each login</li>
+                <li>You can trust devices for 30 days to skip 2FA</li>
+            </ul>
+        </div>
+
+        <p><strong>If you didn't enable this:</strong> Contact support immediately.</p>
+
+        <p style="margin-top: 30px;">
+            <strong>Stay Secure,</strong><br>
+            CRUD Test Security Team
+        </p>
+    </div>
+</body>
+</html>

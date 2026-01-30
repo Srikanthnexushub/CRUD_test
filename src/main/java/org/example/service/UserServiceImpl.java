@@ -2,7 +2,9 @@ package org.example.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.dto.*;
+import org.example.dto.LoginRequest;
+import org.example.dto.LoginResponse;
+import org.example.dto.UserUpdateRequest;
 import org.example.entity.Role;
 import org.example.entity.User;
 import org.example.exception.InvalidCredentialsException;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,38 +34,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserRegistrationResponse registerUser(UserRegistrationRequest request) {
-        log.info("Attempting to register user: {}", request.getUsername());
+    public void registerUser(String username, String email, String password) {
+        log.info("Attempting to register user: {}", username);
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            log.warn("Registration failed: Username '{}' already exists", request.getUsername());
+        if (userRepository.existsByUsername(username)) {
+            log.warn("Registration failed: Username '{}' already exists", username);
             throw new UserAlreadyExistsException("Username already exists");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("Registration failed: Email '{}' already exists", request.getEmail());
+        if (userRepository.existsByEmail(email)) {
+            log.warn("Registration failed: Email '{}' already exists", email);
             throw new UserAlreadyExistsException("Email already exists");
         }
 
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(Role.ROLE_USER);
 
         User savedUser = userRepository.save(user);
         log.info("User registered successfully: {}", savedUser.getUsername());
-
-        return new UserRegistrationResponse(
-            savedUser.getId(),
-            savedUser.getUsername(),
-            savedUser.getEmail(),
-            savedUser.getCreatedAt()
-        );
     }
 
     @Override
-    public LoginResponse authenticateUser(LoginRequest request) {
+    public LoginResponse authenticateUser(LoginRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
         log.info("Attempting to authenticate user: {}", request.getUsername());
 
         try {
@@ -80,6 +74,8 @@ public class UserServiceImpl implements UserService {
             log.info("User authenticated successfully: {}", user.getUsername());
 
             return new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+        } catch (InvalidCredentialsException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Authentication failed for user: {}", request.getUsername());
             throw new InvalidCredentialsException("Invalid username or password");
@@ -87,7 +83,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponse> getAllUsers(String currentUsername) {
+    public List<User> getAllUsers(String currentUsername) {
         log.info("User '{}' attempting to retrieve all users", currentUsername);
 
         User currentUser = userRepository.findByUsername(currentUsername)
@@ -98,14 +94,15 @@ public class UserServiceImpl implements UserService {
             throw new UnauthorizedException("You do not have permission to view all users");
         }
 
-        return userRepository.findAll().stream()
-                .map(this::convertToUserResponse)
-                .collect(Collectors.toList());
+        return userRepository.findAll();
     }
 
     @Override
-    public UserResponse getUserById(Long id, String currentUsername) {
+    public User getUserById(Long id, String currentUsername) {
         log.info("User '{}' attempting to retrieve user with ID: {}", currentUsername, id);
+
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         User targetUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
@@ -115,13 +112,16 @@ public class UserServiceImpl implements UserService {
             throw new UnauthorizedException("You do not have permission to view this user");
         }
 
-        return convertToUserResponse(targetUser);
+        return targetUser;
     }
 
     @Override
     @Transactional
-    public UserResponse updateUser(Long id, UserUpdateRequest request, String currentUsername) {
+    public User updateUser(Long id, UserUpdateRequest request, String currentUsername) {
         log.info("User '{}' attempting to update user with ID: {}", currentUsername, id);
+
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         User targetUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
@@ -149,16 +149,28 @@ public class UserServiceImpl implements UserService {
             targetUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
 
+        // Only admins can change roles
+        if (request.getRole() != null && currentUser.getRole() == Role.ROLE_ADMIN) {
+            if (!targetUser.getRole().equals(request.getRole())) {
+                log.info("Admin '{}' changing role of user '{}' from {} to {}",
+                    currentUsername, targetUser.getUsername(), targetUser.getRole(), request.getRole());
+                targetUser.setRole(request.getRole());
+            }
+        }
+
         User updatedUser = userRepository.save(targetUser);
         log.info("User with ID {} updated successfully", id);
 
-        return convertToUserResponse(updatedUser);
+        return updatedUser;
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id, String currentUsername) {
         log.info("User '{}' attempting to delete user with ID: {}", currentUsername, id);
+
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UserNotFoundException("Current user not found"));
 
         User targetUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
@@ -182,16 +194,5 @@ public class UserServiceImpl implements UserService {
         }
 
         return currentUser.getId().equals(userId);
-    }
-
-    private UserResponse convertToUserResponse(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
     }
 }

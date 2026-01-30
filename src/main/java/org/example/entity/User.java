@@ -36,6 +36,18 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role = Role.ROLE_USER;
 
+    @Column(name = "mfa_enabled", nullable = false)
+    private Boolean mfaEnabled = false;
+
+    @Column(name = "is_account_locked", nullable = false)
+    private Boolean isAccountLocked = false;
+
+    @Column(name = "account_locked_until")
+    private LocalDateTime accountLockedUntil;
+
+    @Column(name = "lock_reason", length = 500)
+    private String lockReason;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

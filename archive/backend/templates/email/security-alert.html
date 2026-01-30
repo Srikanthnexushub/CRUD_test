@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{email/base :: layout}">
+<body>
+    <div th:fragment="content">
+        <h2 style="color: #dc3545;">🚨 Security Alert</h2>
+
+        <div class="alert-box danger">
+            <strong>Unusual activity has been detected on your account.</strong>
+        </div>
+
+        <p>Hello <span th:text="${user.username}">User</span>,</p>
+
+        <p>We detected suspicious activity on your account and wanted to notify you immediately.</p>
+
+        <table class="details-table">
+            <tr>
+                <td>Risk Level:</td>
+                <td><strong th:text="${riskLevel}">HIGH</strong></td>
+            </tr>
+            <tr>
+                <td>Risk Score:</td>
+                <td th:text="${riskScore} + '/100'">75/100</td>
+            </tr>
+            <tr>
+                <td>IP Address:</td>
+                <td th:text="${ipAddress}">192.168.1.1</td>
+            </tr>
+            <tr>
+                <td>Location:</td>
+                <td th:text="${location}">Unknown</td>
+            </tr>
+            <tr>
+                <td>Time:</td>
+                <td th:text="${timestamp}">2026-01-29 10:00:00</td>
+            </tr>
+        </table>
+
+        <p><strong>If this was you:</strong> No action is required. We're keeping your account secure.</p>
+
+        <p><strong>If this wasn't you:</strong> Please secure your account immediately by changing your password and enabling two-factor authentication.</p>
+
+        <p style="margin-top: 30px;">
+            <strong>Stay Safe,</strong><br>
+            CRUD Test Security Team
+        </p>
+    </div>
+</body>
+</html>

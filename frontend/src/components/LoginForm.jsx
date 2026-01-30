@@ -10,6 +10,7 @@ function LoginForm() {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -32,7 +33,7 @@ function LoginForm() {
         if (result.success) {
             navigate('/dashboard');
         } else {
-            setError(result.error);
+            setError(result.error || 'Login failed. Please try again.');
         }
 
         setIsLoading(false);
@@ -40,6 +41,9 @@ function LoginForm() {
 
     return (
         <div className="login-container">
+            <header className="auth-header">
+                <h1 className="brand-name">AI NEXUS HUB</h1>
+            </header>
             <div className="login-card">
                 <h2>Login</h2>
                 <form onSubmit={handleSubmit}>
@@ -64,15 +68,26 @@ function LoginForm() {
 
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            disabled={isLoading}
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle-btn"
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={isLoading}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? '👁️' : '👁️‍🗨️'}
+                            </button>
+                        </div>
                     </div>
 
                     <button
@@ -88,6 +103,10 @@ function LoginForm() {
                     Don't have an account? <Link to="/register">Register here</Link>
                 </div>
             </div>
+
+            <footer className="auth-footer">
+                <p>All rights reserved | 2026-27</p>
+            </footer>
         </div>
     );
 }

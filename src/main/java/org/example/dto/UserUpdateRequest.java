@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.entity.Role;
 
 @Data
 @NoArgsConstructor
@@ -24,4 +25,7 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
             message = "Password must contain at least one uppercase letter, one lowercase letter, and one digit")
     private String password;
+
+    // Only admins can change roles
+    private Role role;
 }

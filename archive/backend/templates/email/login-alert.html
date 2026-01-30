@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{email/base :: layout}">
+<body>
+    <div th:fragment="content">
+        <h2 style="color: #17a2b8;">🔓 New Login to Your Account</h2>
+
+        <div class="alert-box info">
+            <strong>A new login to your account was detected.</strong>
+        </div>
+
+        <p>Hello <span th:text="${user.username}">User</span>,</p>
+
+        <p>We noticed a new login to your account. If this was you, no action is needed.</p>
+
+        <table class="details-table">
+            <tr>
+                <td>Time:</td>
+                <td th:text="${timestamp}">2026-01-29 10:00:00</td>
+            </tr>
+            <tr>
+                <td>IP Address:</td>
+                <td th:text="${ipAddress}">192.168.1.1</td>
+            </tr>
+            <tr>
+                <td>Location:</td>
+                <td th:text="${location}">Unknown</td>
+            </tr>
+            <tr>
+                <td>Device:</td>
+                <td th:text="${device}">Unknown</td>
+            </tr>
+            <tr>
+                <td>Browser:</td>
+                <td th:text="${browser}">Unknown</td>
+            </tr>
+        </table>
+
+        <p><strong>If this wasn't you:</strong> Your password may be compromised. Change it immediately and enable two-factor authentication.</p>
+
+        <p style="margin-top: 30px;">
+            <strong>Stay Safe,</strong><br>
+            CRUD Test Security Team
+        </p>
+    </div>
+</body>
+</html>

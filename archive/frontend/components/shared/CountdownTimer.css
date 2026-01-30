@@ -1,0 +1,82 @@
+.countdown-timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.countdown-timer__time {
+  font-size: 1.125rem;
+  color: #374151;
+  letter-spacing: 0.05em;
+}
+
+/* Warning state (low time remaining) */
+.countdown-timer--warning {
+  background-color: #fef3c7;
+  animation: pulse-warning 1s ease-in-out infinite;
+}
+
+.countdown-timer--warning .countdown-timer__time {
+  color: #92400e;
+}
+
+/* Complete state */
+.countdown-timer--complete {
+  background-color: #fee2e2;
+}
+
+.countdown-timer--complete .countdown-timer__time {
+  color: #991b1b;
+}
+
+/* Pulse animation for warning state */
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .countdown-timer {
+    background-color: #374151;
+  }
+
+  .countdown-timer__time {
+    color: #e5e7eb;
+  }
+
+  .countdown-timer--warning {
+    background-color: rgba(251, 191, 36, 0.2);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+  }
+
+  .countdown-timer--warning .countdown-timer__time {
+    color: #fcd34d;
+  }
+
+  .countdown-timer--complete {
+    background-color: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+
+  .countdown-timer--complete .countdown-timer__time {
+    color: #fca5a5;
+  }
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .countdown-timer--warning {
+    animation: none;
+  }
+}

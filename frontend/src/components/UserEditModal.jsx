@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import '../styles/UserEditModal.css';
 
 function UserEditModal({ user, onClose, onSuccess }) {
+    const { isAdmin } = useAuth();
     const [formData, setFormData] = useState({
         username: user.username,
         email: user.email,
-        password: ''
+        password: '',
+        role: user.role
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +40,10 @@ function UserEditModal({ user, onClose, onSuccess }) {
 
             if (formData.password) {
                 updateData.password = formData.password;
+            }
+
+            if (formData.role !== user.role && isAdmin) {
+                updateData.role = formData.role;
             }
 
             if (Object.keys(updateData).length === 0) {
@@ -107,6 +114,26 @@ function UserEditModal({ user, onClose, onSuccess }) {
                             disabled={isLoading}
                         />
                     </div>
+
+                    {isAdmin && (
+                        <div className="form-group">
+                            <label htmlFor="role">
+                                User Role
+                                <small> (admin can manage all users)</small>
+                            </label>
+                            <select
+                                id="role"
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                disabled={isLoading}
+                                className="role-select"
+                            >
+                                <option value="ROLE_USER">Regular User</option>
+                                <option value="ROLE_ADMIN">Administrator</option>
+                            </select>
+                        </div>
+                    )}
 
                     <div className="modal-actions">
                         <button

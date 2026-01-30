@@ -34,9 +34,23 @@ export const AuthProvider = ({ children }) => {
 
             return { success: true };
         } catch (error) {
+            console.error('Login error:', error);
             return {
                 success: false,
-                error: error.response?.data?.message || 'Login failed'
+                error: error.response?.data?.message || 'Invalid username or password'
+            };
+        }
+    };
+
+    const register = async (username, email, password) => {
+        try {
+            await api.register({ username, email, password });
+            return { success: true };
+        } catch (error) {
+            console.error('Registration error:', error);
+            return {
+                success: false,
+                error: error.response?.data?.message || 'Registration failed'
             };
         }
     };
@@ -48,20 +62,9 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    const isAuthenticated = () => {
-        return !!token && !!user;
-    };
-
-    const isAdmin = () => {
-        return user?.role === 'ROLE_ADMIN';
-    };
-
-    const isOwner = (userId) => {
-        return user?.id === userId;
-    };
-
     const canManageUser = (userId) => {
-        return isAdmin() || isOwner(userId);
+        if (!user) return false;
+        return user.role === 'ROLE_ADMIN' || user.id === userId;
     };
 
     const value = {
@@ -69,14 +72,18 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         login,
+        register,
         logout,
-        isAuthenticated,
-        isAdmin,
-        isOwner,
-        canManageUser
+        canManageUser,
+        isAuthenticated: !!token,
+        isAdmin: user?.role === 'ROLE_ADMIN'
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {

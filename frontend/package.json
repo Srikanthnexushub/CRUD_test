@@ -4,10 +4,22 @@
   "description": "React frontend for CRUD Test Application",
   "private": true,
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.0.1",
+    "@stomp/stompjs": "^7.2.1",
+    "axios": "^1.6.0",
+    "chart.js": "^4.5.1",
+    "date-fns": "^3.0.0",
+    "leaflet": "^1.9.4",
+    "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "react-leaflet-cluster": "^4.0.0",
     "react-router-dom": "^6.20.0",
-    "axios": "^1.6.0"
+    "react-toastify": "^10.0.5",
+    "recharts": "^2.10.0",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

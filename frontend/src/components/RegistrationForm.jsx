@@ -15,6 +15,7 @@ const RegistrationForm = () => {
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [apiError, setApiError] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   // Client-side validation
   const validateForm = () => {
@@ -83,14 +84,12 @@ const RegistrationForm = () => {
     setApiError(null)
     setSuccessMessage('')
 
-    // Call API
-    const result = await api.registerUser(formData)
+    try {
+      // Call API
+      await api.register(formData)
 
-    setLoading(false)
-
-    if (result.success) {
       // Success
-      setSuccessMessage(`User ${result.data.username} registered successfully! Redirecting to login...`)
+      setSuccessMessage(`User ${formData.username} registered successfully! Redirecting to login...`)
 
       // Clear form
       setFormData({
@@ -104,14 +103,19 @@ const RegistrationForm = () => {
       setTimeout(() => {
         navigate('/login')
       }, 2000)
-    } else {
+    } catch (error) {
       // Error from backend
-      setApiError(result.error)
+      setApiError(error.message || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="registration-page">
+      <header className="auth-header">
+        <h1 className="brand-name">AI NEXUS HUB</h1>
+      </header>
       <div className="registration-form-container">
         <h2>Create Account</h2>
         <form onSubmit={handleSubmit} className="registration-form" noValidate>
@@ -164,17 +168,28 @@ const RegistrationForm = () => {
           <label htmlFor="password">
             Password <span className="required">*</span>
           </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={errors.password ? 'error' : ''}
-            placeholder="Enter password"
-            disabled={loading}
-            autoComplete="new-password"
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={errors.password ? 'error' : ''}
+              placeholder="Enter password"
+              disabled={loading}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? '👁️' : '👁️‍🗨️'}
+            </button>
+          </div>
           {errors.password && (
             <span className="error-message">❌ {errors.password}</span>
           )}
@@ -223,6 +238,9 @@ const RegistrationForm = () => {
         </div>
       </form>
       </div>
+      <footer className="auth-footer">
+        <p>All rights reserved | 2026-27</p>
+      </footer>
     </div>
   )
 }

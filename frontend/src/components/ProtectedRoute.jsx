@@ -20,11 +20,11 @@ function ProtectedRoute({ children, adminOnly = false }) {
         );
     }
 
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    if (adminOnly && !isAdmin()) {
+    if (adminOnly && !isAdmin) {
         return <Navigate to="/dashboard" replace />;
     }
 

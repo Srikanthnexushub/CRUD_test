@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserEditModal from './UserEditModal';
 import api from '../services/api';
@@ -66,7 +66,10 @@ function UserDashboard() {
         <div className="dashboard-container">
             <header className="dashboard-header">
                 <div className="header-content">
-                    <h1>User Dashboard</h1>
+                    <div className="header-left">
+                        <h1 className="brand-name">AI NEXUS HUB</h1>
+                        <span className="page-title">User Dashboard</span>
+                    </div>
                     <div className="header-info">
                         <span className="welcome-text">
                             Welcome, <strong>{currentUser.username}</strong>
@@ -169,6 +172,10 @@ function UserDashboard() {
                     </div>
                 </div>
             )}
+
+            <footer className="dashboard-footer">
+                <p>All rights reserved | 2026-27</p>
+            </footer>
         </div>
     );
 }

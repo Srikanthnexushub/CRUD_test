@@ -1,0 +1,62 @@
+package org.example.entity;
+
+public enum AuditEventType {
+    // Authentication Events
+    LOGIN_SUCCESS,
+    LOGIN_FAILURE,
+    LOGOUT,
+    TOKEN_REFRESH,
+    PASSWORD_CHANGE,
+
+    // User Management Events
+    USER_CREATED,
+    USER_UPDATED,
+    USER_DELETED,
+    USER_VIEWED,
+    USER_LIST_VIEWED,
+
+    // Authorization Events
+    ACCESS_GRANTED,
+    ACCESS_DENIED,
+    PERMISSION_CHANGED,
+
+    // System Events
+    SYSTEM_STARTUP,
+    SYSTEM_SHUTDOWN,
+    CONFIGURATION_CHANGED,
+
+    // Security Events
+    SUSPICIOUS_ACTIVITY,
+    BRUTE_FORCE_ATTEMPT,
+    SESSION_EXPIRED,
+    ACCOUNT_LOCKED,
+    ACCOUNT_UNLOCKED,
+
+    // MFA Events
+    MFA_ENABLED,
+    MFA_DISABLED,
+    MFA_SETUP_INITIATED,
+    MFA_VERIFICATION_SUCCESS,
+    MFA_VERIFICATION_FAILURE,
+    BACKUP_CODE_USED,
+    BACKUP_CODES_REGENERATED,
+    DEVICE_TRUSTED,
+    DEVICE_UNTRUSTED,
+
+    // Threat Intelligence Events
+    THREAT_DETECTED,
+    HIGH_RISK_LOGIN,
+    IP_REPUTATION_CHECKED,
+
+    // Rate Limiting Events
+    RATE_LIMIT_EXCEEDED,
+    RATE_LIMIT_WARNING,
+
+    // Data Events
+    DATA_EXPORT,
+    DATA_IMPORT,
+    BULK_OPERATION,
+
+    // General
+    OTHER
+}
