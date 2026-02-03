@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suspicious Login</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #dc3545;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Suspicious Login Activity</h1>
+        </div>
+        <div class="content">
+            <h2>Security Alert</h2>
+            <p>Hello <span th:text="${username}">User</span>,</p>
+
+            <div class="alert-danger">
+                <strong>⚠️ We detected suspicious login activity on your account</strong>
+            </div>
+
+            <p>Someone attempted to access your account with details that raised security concerns.</p>
+
+            <div class="info-box">
+                <strong>Login Attempt Details:</strong><br>
+                Time: <span th:text="${timestamp}">2026-02-03 10:00:00</span><br>
+                IP Address: <span th:text="${ipAddress}">Unknown</span><br>
+                Location: <span th:text="${location}">Unknown</span><br>
+                Device: <span th:text="${device}">Unknown</span>
+            </div>
+
+            <p><strong>Was this you?</strong></p>
+            <ul>
+                <li><strong>Yes, it was me:</strong> No action needed. Your account is secure.</li>
+                <li><strong>No, it wasn't me:</strong> Take immediate action to secure your account.</li>
+            </ul>
+
+            <p><strong>Recommended Actions:</strong></p>
+            <ol>
+                <li>Change your password immediately</li>
+                <li>Enable two-factor authentication</li>
+                <li>Review your recent account activity</li>
+                <li>Check for any unauthorized changes</li>
+            </ol>
+
+            <div style="text-align: center;">
+                <a th:href="${securityUrl}" class="button">Review Security Settings</a>
+            </div>
+
+            <p>If you need assistance, contact our support team immediately.</p>
+
+            <p>Best regards,<br>The <span th:text="${appName}">Application Name</span> Security Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2026</span> <span th:text="${appName}">Application Name</span>. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

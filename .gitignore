@@ -1,19 +1,55 @@
+# ============================================================================
+# Enterprise-Grade .gitignore for Spring Boot + React Application
+# ============================================================================
+
+# ============================================================================
+# SECURITY & SECRETS (NEVER COMMIT THESE!)
+# ============================================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.jks
+**/secrets/
+**/credentials/
+application-secrets.properties
+serviceAccountKey.json
+
+# ============================================================================
+# JAVA / MAVEN
+# ============================================================================
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.kotlin
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Build artifacts
+*.jar
+*.war
+*.nar
+*.ear
+*.class
+*.log
+
+# ============================================================================
+# INTELLIJ IDEA
+# ============================================================================
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
+.idea_modules/
 
-### Eclipse ###
+# ============================================================================
+# ECLIPSE
+# ============================================================================
 .apt_generated
 .classpath
 .factorypath
@@ -21,8 +57,20 @@ target/
 .settings
 .springBeans
 .sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
-### NetBeans ###
+# ============================================================================
+# VS CODE
+# ============================================================================
+.vscode/
+*.code-workspace
+.history/
+
+# ============================================================================
+# NETBEANS
+# ============================================================================
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -32,20 +80,164 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# ============================================================================
+# REACT / NODE / FRONTEND
+# ============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-### Mac OS ###
-.DS_Store
-
-### Frontend (Node.js) ###
-frontend/node_modules/
+# Frontend build output
 frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+frontend/.next/
+frontend/out/
+
+# Frontend environment files
+frontend/.env
 frontend/.env.local
 frontend/.env.production.local
 frontend/.env.development.local
 frontend/.env.test.local
+
+# Frontend testing
+frontend/coverage/
+
+# Vite
+frontend/vite.config.js.timestamp-*
+
+# ============================================================================
+# LOGS & TEMPORARY FILES
+# ============================================================================
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+logs/
+*.log.*
+/var/log/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.kotlin
+
+# ============================================================================
+# DATABASE
+# ============================================================================
+*.db
+*.sqlite
+*.sqlite3
+/data/
+/db-data/
+/postgres-data/
+/mysql-data/
+
+# ============================================================================
+# DOCKER
+# ============================================================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================================================
+# TESTING & COVERAGE
+# ============================================================================
+/test-results/
+/playwright-report/
+/coverage/
+*.lcov
+jacoco.exec
+/target/site/jacoco/
+
+# ============================================================================
+# FLYWAY
+# ============================================================================
+# Keep migration files, ignore generated ones
+**/db/migration/.flywayrepair
+
+# ============================================================================
+# SPRING BOOT
+# ============================================================================
+*.pid
+spring.log
+application-local.properties
+
+# ============================================================================
+# OPERATING SYSTEM
+# ============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================================================
+# CERTIFICATES & KEYS
+# ============================================================================
+*.crt
+*.cer
+*.der
+*.p7b
+*.pfx
+
+# ============================================================================
+# PACKAGE MANAGERS
+# ============================================================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================================================
+# ARCHIVE & BACKUP FILES
+# ============================================================================
+archive/
+backups/
+*.bak
+*.backup
+*.old
+
+# ============================================================================
+# GENERATED DOCUMENTATION
+# ============================================================================
+/target/generated-docs/
+/target/generated-sources/
+/target/generated-test-sources/
+
+# ============================================================================
+# KUBERNETES & HELM (if using sensitive values)
+# ============================================================================
+**/k8s/secrets/
+**/helm/values-prod.yaml
+**/helm/values-secret.yaml
+
+# ============================================================================
+# TERRAFORM (if using IaC)
+# ============================================================================
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+*.tfvars
+
+# ============================================================================
+# MISC
+# ============================================================================
+TODO.md
+NOTES.md
+scratch/

@@ -7,6 +7,7 @@ import org.example.dto.UserUpdateRequest;
 import org.example.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
 
@@ -23,4 +24,8 @@ public interface UserService {
     void deleteUser(Long id, String currentUsername);
 
     boolean isAdminOrOwner(Long userId, String currentUsername);
+
+    Optional<User> findByUsername(String username);
+
+    String generateAuthToken(User user);
 }

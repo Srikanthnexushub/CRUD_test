@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Device Login</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 New Device Login Detected</h1>
+        </div>
+        <div class="content">
+            <h2>New Login Notification</h2>
+            <p>Hello <span th:text="${username}">User</span>,</p>
+
+            <div class="alert-info">
+                <strong>ℹ️ Your account was accessed from a new device</strong>
+            </div>
+
+            <p>We detected a successful login from a device we haven't seen before.</p>
+
+            <div class="info-box">
+                <strong>Login Details:</strong><br>
+                Time: <span th:text="${timestamp}">2026-02-03 10:00:00</span><br>
+                Device: <span th:text="${device}">Unknown</span><br>
+                IP Address: <span th:text="${ipAddress}">Unknown</span><br>
+                Location: <span th:text="${location}">Unknown</span>
+            </div>
+
+            <p><strong>Was this you?</strong></p>
+            <ul>
+                <li><strong>Yes, it was me:</strong> Great! This device will now be recognized for future logins.</li>
+                <li><strong>No, it wasn't me:</strong> Please change your password immediately and enable two-factor authentication.</li>
+            </ul>
+
+            <p><strong>Security Tips:</strong></p>
+            <ul>
+                <li>Always log out when using shared or public devices</li>
+                <li>Enable two-factor authentication for extra security</li>
+                <li>Review your active sessions regularly</li>
+                <li>Use strong, unique passwords</li>
+            </ul>
+
+            <p>If you have any concerns about this login, please contact our support team.</p>
+
+            <p>Best regards,<br>The <span th:text="${appName}">Application Name</span> Security Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2026</span> <span th:text="${appName}">Application Name</span>. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

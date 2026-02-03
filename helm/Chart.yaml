@@ -1,0 +1,19 @@
+apiVersion: v2
+name: crud-app
+description: Enterprise CRUD Application with MFA, Rate Limiting, and Audit Logging
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+keywords:
+  - crud
+  - rest-api
+  - spring-boot
+  - mfa
+  - enterprise
+maintainers:
+  - name: Enterprise Team
+    email: team@example.com
+home: https://github.com/your-org/crud-test-app
+sources:
+  - https://github.com/your-org/crud-test-app
+icon: https://spring.io/images/spring-logo-9146a4d3298760c2e7e49595184e1975.svg

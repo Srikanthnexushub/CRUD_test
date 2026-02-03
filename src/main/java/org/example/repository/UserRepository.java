@@ -2,12 +2,15 @@ package org.example.repository;
 
 import org.example.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 /**
- * Repository for User entity operations.
+ * Repository for User entity operations with dynamic filtering support.
+ *
+ * Extends JpaSpecificationExecutor for complex queries with Specification API.
  *
  * DEBUGGING GUIDE:
  * ----------------
@@ -23,7 +26,7 @@ import java.util.Optional;
  * - Line 26: existsByEmail() - Debug email uniqueness checks (registration)
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     // BREAKPOINT: Set in RepositoryLoggingAspect to debug username existence checks
     boolean existsByUsername(String username);

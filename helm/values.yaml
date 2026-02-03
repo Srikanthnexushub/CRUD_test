@@ -1,0 +1,153 @@
+# Default values for crud-app Helm chart
+
+# Application Configuration
+app:
+  name: crud-app
+  version: 2.0.0
+
+# Docker Image
+image:
+  repository: your-dockerhub-username/crud-test-app
+  pullPolicy: Always
+  tag: "latest"
+
+# Replicas
+replicaCount: 3
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.your-domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: crud-app-tls
+      hosts:
+        - api.your-domain.com
+
+# Resources
+resources:
+  requests:
+    memory: "768Mi"
+    cpu: "500m"
+  limits:
+    memory: "1536Mi"
+    cpu: "2000m"
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Environment Variables
+env:
+  springProfilesActive: prod
+  serverPort: "8080"
+
+  # Database
+  dbUrl: "jdbc:postgresql://postgresql-service:5432/crud_test_db"
+  dbUsername: "postgres"
+  dbPoolSize: "20"
+
+  # Redis
+  redisHost: "redis-service"
+  redisPort: "6379"
+
+  # Rate Limiting
+  rateLimitEnabled: "true"
+  rateLimitGeneralCapacity: "100"
+  rateLimitAuthCapacity: "5"
+
+# Secrets (should be provided via external secret management)
+secrets:
+  jwtSecret: ""
+  dbPassword: ""
+  adminPassword: ""
+  redisPassword: ""
+  smtpUsername: ""
+  smtpPassword: ""
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Redis Configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Health Probes
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 90
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Pod Anti-Affinity
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - crud-app
+          topologyKey: kubernetes.io/hostname
+
+# Service Account
+serviceAccount:
+  create: true
+  name: crud-app-sa
