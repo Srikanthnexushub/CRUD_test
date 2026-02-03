@@ -22,6 +22,7 @@ public class AccountLockServiceImpl implements AccountLockService {
 
     private final LoginAttemptRepository loginAttemptRepository;
     private final UserRepository userRepository;
+    private final ThreatIntelligenceService threatIntelligenceService;
 
     @Value("${app.security.account-lock.max-failed-attempts:5}")
     private int maxFailedAttempts;
@@ -70,6 +71,13 @@ public class AccountLockServiceImpl implements AccountLockService {
 
         loginAttemptRepository.save(attempt);
 
+        // Record in threat intelligence system
+        try {
+            threatIntelligenceService.recordFailedLogin(ipAddress, userAgent);
+        } catch (Exception e) {
+            log.error("Failed to record in threat intelligence", e);
+        }
+
         // Check if account should be locked
         if (shouldLockAccount(username)) {
             userRepository.findByUsername(username).ifPresent(user -> {
@@ -93,6 +101,17 @@ public class AccountLockServiceImpl implements AccountLockService {
 
     @Override
     public boolean shouldBlockIp(String ipAddress) {
+        // Check threat intelligence first
+        try {
+            if (threatIntelligenceService.shouldBlockIp(ipAddress)) {
+                log.warn("IP {} blocked by threat intelligence", ipAddress);
+                return true;
+            }
+        } catch (Exception e) {
+            log.error("Failed to check threat intelligence for IP: {}", ipAddress, e);
+        }
+
+        // Check failed login attempts
         long failedCount = getFailedAttemptCountByIp(ipAddress);
         boolean shouldBlock = failedCount >= maxFailedAttemptsPerIp;
 

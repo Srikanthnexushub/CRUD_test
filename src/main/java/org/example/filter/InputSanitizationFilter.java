@@ -4,7 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.service.ThreatIntelligenceService;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +22,10 @@ import java.util.regex.Pattern;
 @Component
 @Order(2)
 @Slf4j
+@RequiredArgsConstructor
 public class InputSanitizationFilter extends OncePerRequestFilter {
+
+    private final ThreatIntelligenceService threatIntelligenceService;
 
     // Patterns for detecting malicious input
     private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
@@ -68,9 +73,23 @@ public class InputSanitizationFilter extends OncePerRequestFilter {
         if (request.getQueryString() != null) {
             String queryString = request.getQueryString();
 
-            if (containsMaliciousInput(queryString)) {
-                log.warn("Malicious input detected in query string: {} from IP: {}",
-                    requestUri, getClientIp(request));
+            String attackType = detectAttackType(queryString);
+            if (attackType != null) {
+                String ipAddress = getClientIp(request);
+                log.warn("Malicious input detected in query string: {} from IP: {} - Type: {}",
+                    requestUri, ipAddress, attackType);
+
+                // Record in threat intelligence
+                try {
+                    threatIntelligenceService.recordSuspiciousActivity(
+                        ipAddress,
+                        attackType,
+                        "Malicious input in query: " + requestUri
+                    );
+                } catch (Exception e) {
+                    log.error("Failed to record suspicious activity", e);
+                }
+
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("{\"error\":\"Invalid input detected\"}");
                 return;
@@ -81,10 +100,26 @@ public class InputSanitizationFilter extends OncePerRequestFilter {
         String userAgent = request.getHeader("User-Agent");
         String referer = request.getHeader("Referer");
 
-        if ((userAgent != null && containsMaliciousInput(userAgent)) ||
-            (referer != null && containsMaliciousInput(referer))) {
-            log.warn("Malicious input detected in headers for request: {} from IP: {}",
-                requestUri, getClientIp(request));
+        String headerAttack = null;
+        if (userAgent != null) headerAttack = detectAttackType(userAgent);
+        if (headerAttack == null && referer != null) headerAttack = detectAttackType(referer);
+
+        if (headerAttack != null) {
+            String ipAddress = getClientIp(request);
+            log.warn("Malicious input detected in headers for request: {} from IP: {} - Type: {}",
+                requestUri, ipAddress, headerAttack);
+
+            // Record in threat intelligence
+            try {
+                threatIntelligenceService.recordSuspiciousActivity(
+                    ipAddress,
+                    headerAttack,
+                    "Malicious input in headers: " + requestUri
+                );
+            } catch (Exception e) {
+                log.error("Failed to record suspicious activity", e);
+            }
+
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("{\"error\":\"Invalid input detected in headers\"}");
             return;
@@ -94,18 +129,29 @@ public class InputSanitizationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Check if input contains malicious patterns
+     * Detect specific type of attack
      */
-    private boolean containsMaliciousInput(String input) {
+    private String detectAttackType(String input) {
         if (input == null || input.isEmpty()) {
-            return false;
+            return null;
         }
 
-        return SQL_INJECTION_PATTERN.matcher(input).find() ||
-               XSS_PATTERN.matcher(input).find() ||
-               PATH_TRAVERSAL_PATTERN.matcher(input).find() ||
-               COMMAND_INJECTION_PATTERN.matcher(input).find();
+        if (SQL_INJECTION_PATTERN.matcher(input).find()) {
+            return "SQL_INJECTION";
+        }
+        if (XSS_PATTERN.matcher(input).find()) {
+            return "XSS";
+        }
+        if (PATH_TRAVERSAL_PATTERN.matcher(input).find()) {
+            return "PATH_TRAVERSAL";
+        }
+        if (COMMAND_INJECTION_PATTERN.matcher(input).find()) {
+            return "COMMAND_INJECTION";
+        }
+
+        return null;
     }
+
 
     /**
      * Skip filter for certain paths
