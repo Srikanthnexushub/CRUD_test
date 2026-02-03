@@ -1,6 +1,8 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useAuthStore, useUserStore } from '../stores';
 import { User } from '../types';
+import FocusTrap from './FocusTrap';
+import { useAnnouncer } from '../hooks/useAnnouncer';
 import '../styles/UserEditModal.css';
 
 interface UserEditModalProps {
@@ -19,6 +21,7 @@ interface UserFormData {
 const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSuccess }) => {
   const isAdmin = useAuthStore((state) => state.isAdmin);
   const updateUser = useUserStore((state) => state.updateUser);
+  const { announce } = useAnnouncer();
 
   const [formData, setFormData] = useState<UserFormData>({
     username: user.username,
@@ -69,23 +72,27 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSuccess 
       }
 
       await updateUser(user.id, updateData);
+      announce('User updated successfully', 'polite');
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Failed to update user');
+      const errorMessage = err.message || 'Failed to update user';
+      setError(errorMessage);
+      announce(errorMessage, 'assertive');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Edit User</h2>
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <FocusTrap onEscape={onClose}>
+        <div className="modal-content edit-modal" onClick={(e) => e.stopPropagation()}>
+          <h2 id="edit-modal-title">Edit User</h2>
+          <form onSubmit={handleSubmit} aria-busy={isLoading}>
+            {error && (
+              <div className="error-message" role="alert" aria-live="assertive">
+                {error}
+              </div>
+            )}
 
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -151,25 +158,28 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSuccess 
             </div>
           )}
 
-          <div className="modal-actions">
-            <button
-              type="submit"
-              className="btn-save"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-cancel"
-              disabled={isLoading}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="modal-actions">
+              <button
+                type="submit"
+                className="btn-save"
+                disabled={isLoading}
+                aria-label="Save user changes"
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-cancel"
+                disabled={isLoading}
+                aria-label="Cancel editing"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </FocusTrap>
     </div>
   );
 };

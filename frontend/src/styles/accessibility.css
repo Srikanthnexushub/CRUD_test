@@ -1,0 +1,172 @@
+/* Accessibility Styles - WCAG 2.1 AA Compliance */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus indicators - Enhanced for WCAG 2.1 AA */
+*:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Button focus states */
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Input focus states */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 0;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* High contrast focus for dark backgrounds */
+.dark-bg *:focus-visible {
+  outline-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+/* Keyboard navigation indicators */
+[data-keyboard-navigation="true"] *:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Improved target size for touch (WCAG 2.5.5) */
+@media (pointer: coarse) {
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Reduced motion support (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-width: 2px;
+  }
+
+  *:focus-visible {
+    outline-width: 4px;
+    outline-offset: 3px;
+  }
+}
+
+/* Color contrast improvements */
+.text-muted {
+  color: #666666; /* WCAG AA compliant on white */
+}
+
+.text-secondary {
+  color: #555555; /* WCAG AA compliant on white */
+}
+
+/* Error states with sufficient contrast */
+.error,
+.error-message,
+[aria-invalid="true"] {
+  color: #c41e3a; /* WCAG AA compliant */
+  border-color: #c41e3a;
+}
+
+/* Success states with sufficient contrast */
+.success,
+.success-message {
+  color: #0f5132; /* WCAG AA compliant */
+}
+
+/* Loading/busy states */
+[aria-busy="true"] {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Disabled states */
+:disabled,
+[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Live regions for announcements */
+[aria-live] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Modal overlay */
+[aria-modal="true"] {
+  z-index: 1000;
+}
+
+/* Ensure proper text spacing (WCAG 1.4.12) */
+body {
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+p {
+  margin-bottom: 1em;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Skip link improvements */
+.skip-link:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

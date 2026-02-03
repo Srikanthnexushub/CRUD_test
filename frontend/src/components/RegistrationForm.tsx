@@ -2,6 +2,8 @@ import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../stores';
 import { ApiError } from '../types';
+import { useFocusManagement } from '../hooks/useFocusManagement';
+import { useAnnouncer } from '../hooks/useAnnouncer';
 import './RegistrationForm.css';
 
 interface RegistrationFormData {
@@ -19,6 +21,8 @@ interface FormErrors {
 const RegistrationForm: React.FC = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
+  const { announce } = useAnnouncer();
+  const usernameRef = useFocusManagement<HTMLInputElement>({ autoFocus: true });
 
   const [formData, setFormData] = useState<RegistrationFormData>({
     username: '',
@@ -66,6 +70,13 @@ const RegistrationForm: React.FC = () => {
     }
 
     setErrors(newErrors);
+
+    // Announce validation errors
+    if (Object.keys(newErrors).length > 0) {
+      const errorMessages = Object.values(newErrors).join('. ');
+      announce(`Form validation errors: ${errorMessages}`, 'assertive');
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -105,7 +116,9 @@ const RegistrationForm: React.FC = () => {
 
       if (result.success) {
         // Success
-        setSuccessMessage(`User ${formData.username} registered successfully! Redirecting to login...`);
+        const message = `User ${formData.username} registered successfully! Redirecting to login...`;
+        setSuccessMessage(message);
+        announce(message, 'polite');
 
         // Clear form
         setFormData({
@@ -120,11 +133,15 @@ const RegistrationForm: React.FC = () => {
           navigate('/login');
         }, 2000);
       } else {
-        setApiError({ message: result.error || 'Registration failed' });
+        const errorMsg = result.error || 'Registration failed';
+        setApiError({ message: errorMsg });
+        announce(errorMsg, 'assertive');
       }
     } catch (error: any) {
       // Error from backend
-      setApiError(error as ApiError);
+      const apiErr = error as ApiError;
+      setApiError(apiErr);
+      announce(apiErr.message, 'assertive');
     } finally {
       setLoading(false);
     }
@@ -132,18 +149,19 @@ const RegistrationForm: React.FC = () => {
 
   return (
     <div className="registration-page">
-      <header className="auth-header">
+      <header className="auth-header" role="banner">
         <h1 className="brand-name">AI NEXUS HUB</h1>
       </header>
-      <div className="registration-form-container">
+      <main id="main-content" className="registration-form-container" role="main">
         <h2>Create Account</h2>
-        <form onSubmit={handleSubmit} className="registration-form" noValidate>
+        <form onSubmit={handleSubmit} className="registration-form" noValidate aria-busy={loading}>
           {/* Username Field */}
           <div className="form-group">
             <label htmlFor="username">
-              Username <span className="required">*</span>
+              Username <span className="required" aria-label="required">*</span>
             </label>
             <input
+              ref={usernameRef}
               type="text"
               id="username"
               name="username"
@@ -153,17 +171,20 @@ const RegistrationForm: React.FC = () => {
               placeholder="Enter username (3-50 chars, alphanumeric + underscore)"
               disabled={loading}
               autoComplete="username"
+              aria-required="true"
+              aria-invalid={!!errors.username}
+              aria-describedby="username-hint username-error"
             />
             {errors.username && (
-              <span className="error-message">❌ {errors.username}</span>
+              <span id="username-error" className="error-message" role="alert">❌ {errors.username}</span>
             )}
-            <span className="hint">3-50 characters, letters, numbers, and underscores only</span>
+            <span id="username-hint" className="hint">3-50 characters, letters, numbers, and underscores only</span>
           </div>
 
           {/* Email Field */}
           <div className="form-group">
             <label htmlFor="email">
-              Email <span className="required">*</span>
+              Email <span className="required" aria-label="required">*</span>
             </label>
             <input
               type="email"
@@ -175,17 +196,20 @@ const RegistrationForm: React.FC = () => {
               placeholder="Enter email address"
               disabled={loading}
               autoComplete="email"
+              aria-required="true"
+              aria-invalid={!!errors.email}
+              aria-describedby="email-hint email-error"
             />
             {errors.email && (
-              <span className="error-message">❌ {errors.email}</span>
+              <span id="email-error" className="error-message" role="alert">❌ {errors.email}</span>
             )}
-            <span className="hint">Valid email format required</span>
+            <span id="email-hint" className="hint">Valid email format required</span>
           </div>
 
           {/* Password Field */}
           <div className="form-group">
             <label htmlFor="password">
-              Password <span className="required">*</span>
+              Password <span className="required" aria-label="required">*</span>
             </label>
             <div className="password-input-wrapper">
               <input
@@ -198,6 +222,9 @@ const RegistrationForm: React.FC = () => {
                 placeholder="Enter password"
                 disabled={loading}
                 autoComplete="new-password"
+                aria-required="true"
+                aria-invalid={!!errors.password}
+                aria-describedby="password-hint password-error"
               />
               <button
                 type="button"
@@ -205,19 +232,20 @@ const RegistrationForm: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
             </div>
             {errors.password && (
-              <span className="error-message">❌ {errors.password}</span>
+              <span id="password-error" className="error-message" role="alert">❌ {errors.password}</span>
             )}
-            <span className="hint">Min 8 characters, including uppercase, lowercase, and digit</span>
+            <span id="password-hint" className="hint">Min 8 characters, including uppercase, lowercase, and digit</span>
           </div>
 
           {/* API Error Display */}
           {apiError && (
-            <div className="api-error">
+            <div className="api-error" role="alert" aria-live="assertive">
               <strong>❌ Error {apiError.status ? `(${apiError.status})` : ''}:</strong> {apiError.message}
               {apiError.details && apiError.details.length > 0 && (
                 <ul className="error-details">
@@ -231,7 +259,7 @@ const RegistrationForm: React.FC = () => {
 
           {/* Success Message */}
           {successMessage && (
-            <div className="success-message">
+            <div className="success-message" role="status" aria-live="polite">
               ✅ {successMessage}
             </div>
           )}
@@ -241,10 +269,11 @@ const RegistrationForm: React.FC = () => {
             type="submit"
             className="submit-button"
             disabled={loading}
+            aria-label="Submit registration form"
           >
             {loading ? (
               <>
-                <span className="spinner"></span>
+                <span className="spinner" aria-hidden="true"></span>
                 Registering...
               </>
             ) : (
@@ -256,8 +285,8 @@ const RegistrationForm: React.FC = () => {
             Already have an account? <Link to="/login">Login here</Link>
           </div>
         </form>
-      </div>
-      <footer className="auth-footer">
+      </main>
+      <footer className="auth-footer" role="contentinfo">
         <p>All rights reserved | 2026-27</p>
       </footer>
     </div>

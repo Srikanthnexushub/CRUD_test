@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuthStore } from './stores';
 import ErrorBoundary from './components/ErrorBoundary';
+import SkipLink from './components/SkipLink';
 import RegistrationForm from './components/RegistrationForm';
 import LoginForm from './components/LoginForm';
 import UserDashboard from './components/UserDashboard';
@@ -21,9 +22,10 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <SkipLink href="#main-content">Skip to main content</SkipLink>
         <ErrorBoundary
           fallback={
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <div style={{ padding: '2rem', textAlign: 'center' }} role="alert">
               <h2>Navigation Error</h2>
               <p>There was an error loading the page.</p>
               <button onClick={() => window.location.reload()}>Reload</button>
@@ -57,6 +59,8 @@ const App: React.FC = () => {
           draggable
           pauseOnHover
           theme="light"
+          role="region"
+          aria-label="Notifications"
         />
       </BrowserRouter>
     </ErrorBoundary>
