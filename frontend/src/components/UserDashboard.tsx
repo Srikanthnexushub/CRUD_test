@@ -2,6 +2,8 @@ import React, { useState, useEffect, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useUserStore } from '../stores';
 import UserEditModal from './UserEditModal';
+import SkeletonLoader from './SkeletonLoader';
+import ErrorFallback from './ErrorFallback';
 import { User } from '../types';
 import '../styles/UserDashboard.css';
 
@@ -12,7 +14,7 @@ const UserDashboard: React.FC = () => {
   const { user: currentUser, logout, canManageUser } = useAuthStore();
 
   // User store
-  const { users, loading, error, fetchUsers } = useUserStore();
+  const { users, loading, error, fetchUsers, clearError } = useUserStore();
 
   // Local state
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -52,6 +54,11 @@ const UserDashboard: React.FC = () => {
     fetchUsers();
   };
 
+  const handleRetry = (): void => {
+    clearError();
+    fetchUsers();
+  };
+
   if (!currentUser) {
     return null;
   }
@@ -80,53 +87,69 @@ const UserDashboard: React.FC = () => {
 
       <main className="dashboard-main">
         {error && (
-          <div className="error-message">
-            {error}
+          <ErrorFallback
+            error={new Error(error)}
+            resetError={handleRetry}
+            title="Failed to load users"
+            message="There was an error loading the user list. Please try again."
+          />
+        )}
+
+        {loading && !error && (
+          <div className="users-grid">
+            <SkeletonLoader type="card" count={6} />
           </div>
         )}
 
-        {loading ? (
-          <div className="loading">Loading users...</div>
-        ) : (
+        {!loading && !error && (
           <div className="users-grid">
-            {users.map((user) => (
-              <div key={user.id} className="user-card">
-                <div className="user-card-header">
-                  <h3>{user.username}</h3>
-                  {user.role === 'ROLE_ADMIN' && (
-                    <span className="role-badge admin">Admin</span>
-                  )}
-                  {user.role === 'ROLE_USER' && (
-                    <span className="role-badge user">User</span>
-                  )}
-                </div>
-                <div className="user-card-body">
-                  <p><strong>Email:</strong> {user.email}</p>
-                  <p><strong>ID:</strong> {user.id}</p>
-                  {user.createdAt && (
-                    <p className="user-dates">
-                      <small>Created: {new Date(user.createdAt).toLocaleDateString()}</small>
-                    </p>
-                  )}
-                </div>
-                {canManageUser(user.id) && (
-                  <div className="user-card-actions">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="btn-edit"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(user)}
-                      className="btn-delete"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
+            {users.length === 0 ? (
+              <div className="empty-state">
+                <p>No users found</p>
               </div>
-            ))}
+            ) : (
+              users.map((user) => (
+                <div key={user.id} className="user-card">
+                  <div className="user-card-header">
+                    <h3>{user.username}</h3>
+                    {user.role === 'ROLE_ADMIN' && (
+                      <span className="role-badge admin">Admin</span>
+                    )}
+                    {user.role === 'ROLE_USER' && (
+                      <span className="role-badge user">User</span>
+                    )}
+                  </div>
+                  <div className="user-card-body">
+                    <p>
+                      <strong>Email:</strong> {user.email}
+                    </p>
+                    <p>
+                      <strong>ID:</strong> {user.id}
+                    </p>
+                    {user.createdAt && (
+                      <p className="user-dates">
+                        <small>
+                          Created: {new Date(user.createdAt).toLocaleDateString()}
+                        </small>
+                      </p>
+                    )}
+                  </div>
+                  {canManageUser(user.id) && (
+                    <div className="user-card-actions">
+                      <button onClick={() => handleEdit(user)} className="btn-edit">
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(user)}
+                        className="btn-delete"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
       </main>
@@ -141,13 +164,17 @@ const UserDashboard: React.FC = () => {
 
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="modal-content confirm-dialog" onClick={(e: MouseEvent) => e.stopPropagation()}>
+          <div
+            className="modal-content confirm-dialog"
+            onClick={(e: MouseEvent) => e.stopPropagation()}
+          >
             <h3>Confirm Delete</h3>
             <p>
               Are you sure you want to delete user <strong>{deleteConfirm.username}</strong>?
               {deleteConfirm.id === currentUser.id && (
                 <span className="warning-text">
-                  <br />Warning: You are deleting your own account. You will be logged out.
+                  <br />
+                  Warning: You are deleting your own account. You will be logged out.
                 </span>
               )}
             </p>
@@ -158,10 +185,7 @@ const UserDashboard: React.FC = () => {
               >
                 Delete
               </button>
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="btn-cancel"
-              >
+              <button onClick={() => setDeleteConfirm(null)} className="btn-cancel">
                 Cancel
               </button>
             </div>
