@@ -1,33 +1,34 @@
-import { useState, useEffect } from 'react'
-import './UserList.css'
+import React, { useState, useEffect } from 'react';
+import { User } from '../types';
+import './UserList.css';
 
-const UserList = ({ refresh }) => {
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(false)
+interface UserListProps {
+  refresh?: number;
+}
+
+const UserList: React.FC<UserListProps> = ({ refresh }) => {
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     // For now, show placeholder since we don't have a GET users endpoint yet
     setUsers([
       {
-        id: 'demo',
+        id: 0,
         username: 'Demo User',
         email: 'demo@example.com',
+        role: 'ROLE_USER',
         createdAt: new Date().toISOString(),
         isDemo: true
       }
-    ])
-  }, [refresh])
-
-  if (loading) {
-    return <div className="user-list loading">Loading users...</div>
-  }
+    ]);
+  }, [refresh]);
 
   if (users.length === 0) {
     return (
       <div className="user-list empty">
         <p>No users registered yet. Register your first user above!</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -52,13 +53,13 @@ const UserList = ({ refresh }) => {
               <td>{user.id}</td>
               <td>{user.username}</td>
               <td>{user.email}</td>
-              <td>{new Date(user.createdAt).toLocaleString()}</td>
+              <td>{user.createdAt ? new Date(user.createdAt).toLocaleString() : 'N/A'}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};
 
-export default UserList
+export default UserList;
