@@ -1,0 +1,114 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: database-backup
+  namespace: crud-app
+  labels:
+    app: crud-app
+    component: backup
+spec:
+  # Run daily at 2 AM
+  schedule: "0 2 * * *"
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: crud-app
+            component: backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: postgres-backup
+              image: postgres:15
+              env:
+                - name: DB_NAME
+                  value: "crud_test_db"
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: crud-app-secrets
+                      key: postgres-user
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: crud-app-secrets
+                      key: postgres-password
+                - name: DB_HOST
+                  value: "postgresql"
+                - name: DB_PORT
+                  value: "5432"
+                - name: BACKUP_RETENTION_DAYS
+                  value: "30"
+                - name: S3_BUCKET
+                  value: "my-app-backups"
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: access-key-id
+                      optional: true
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: secret-access-key
+                      optional: true
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+                  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+                  BACKUP_FILE="/backups/crud_test_db_${TIMESTAMP}.sql.gz"
+
+                  echo "Starting database backup at $(date)"
+                  echo "Database: ${DB_NAME}"
+                  echo "Backup file: ${BACKUP_FILE}"
+
+                  # Create backup
+                  PGPASSWORD="${DB_PASSWORD}" pg_dump \
+                    --host="${DB_HOST}" \
+                    --port="${DB_PORT}" \
+                    --username="${DB_USER}" \
+                    --dbname="${DB_NAME}" \
+                    --format=custom \
+                    | gzip > "${BACKUP_FILE}"
+
+                  echo "Backup created successfully"
+
+                  # Upload to S3 if configured
+                  if [ -n "${AWS_ACCESS_KEY_ID:-}" ] && command -v aws &> /dev/null; then
+                    echo "Uploading to S3..."
+                    aws s3 cp "${BACKUP_FILE}" "s3://${S3_BUCKET}/backups/$(basename ${BACKUP_FILE})"
+                    echo "Upload completed"
+                  fi
+
+                  # Clean up old backups
+                  echo "Cleaning up old backups..."
+                  find /backups -name "crud_test_db_*.sql.gz" -type f -mtime +${BACKUP_RETENTION_DAYS} -delete
+
+                  echo "Backup process completed successfully at $(date)"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: crud-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard

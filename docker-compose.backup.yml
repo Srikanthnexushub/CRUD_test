@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  backup-manager:
+    image: postgres:15
+    container_name: crud-app-backup-manager
+    environment:
+      - DB_NAME=crud_test_db
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - BACKUP_RETENTION_DAYS=30
+      - S3_BUCKET=${S3_BUCKET:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+    volumes:
+      - ./scripts:/scripts
+      - backup-data:/backups
+      - ./logs:/logs
+    command: >
+      bash -c "
+      apt-get update && apt-get install -y awscli cron &&
+      echo '0 2 * * * /scripts/backup-database.sh >> /logs/backup.log 2>&1' | crontab - &&
+      echo 'Backup manager started. Backups will run daily at 2 AM.' &&
+      cron -f
+      "
+    networks:
+      - crud-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+  # Monitoring service for backups
+  backup-monitor:
+    image: curlimages/curl:latest
+    container_name: crud-app-backup-monitor
+    environment:
+      - BACKUP_DIR=/backups
+      - ALERT_WEBHOOK=${ALERT_WEBHOOK:-}
+    volumes:
+      - backup-data:/backups:ro
+    command: >
+      sh -c "
+      while true; do
+        LATEST_BACKUP=$$(ls -t /backups/crud_test_db_*.sql.gz 2>/dev/null | head -1);
+        if [ -n \"$$LATEST_BACKUP\" ]; then
+          BACKUP_AGE=$$(( ($$(date +%s) - $$(stat -c %Y \"$$LATEST_BACKUP\")) / 3600 ));
+          echo \"Latest backup: $$LATEST_BACKUP ($$BACKUP_AGE hours old)\";
+          if [ $$BACKUP_AGE -gt 48 ]; then
+            echo \"WARNING: Backup is older than 48 hours!\";
+            if [ -n \"$$ALERT_WEBHOOK\" ]; then
+              curl -X POST \"$$ALERT_WEBHOOK\" \
+                -H 'Content-Type: application/json' \
+                -d '{\"text\":\"⚠️ Database backup is older than 48 hours!\"}';
+            fi;
+          fi;
+        else
+          echo \"WARNING: No backup files found!\";
+        fi;
+        sleep 3600;
+      done
+      "
+    networks:
+      - crud-network
+    restart: unless-stopped
+
+volumes:
+  backup-data:
+    driver: local
+
+networks:
+  crud-network:
+    external: true

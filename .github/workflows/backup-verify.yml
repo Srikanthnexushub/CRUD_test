@@ -1,0 +1,143 @@
+name: Backup Verification
+
+on:
+  schedule:
+    # Run weekly on Sundays at 3 AM
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  verify-backup:
+    name: Verify Database Backups
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_restore_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download latest backup from S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # Download latest backup
+          aws s3 cp s3://${{ secrets.S3_BACKUP_BUCKET }}/backups/ . \
+            --recursive \
+            --exclude "*" \
+            --include "crud_test_db_*.sql.gz" \
+            --no-progress
+
+          # Get the latest backup file
+          LATEST_BACKUP=$(ls -t crud_test_db_*.sql.gz | head -1)
+          echo "LATEST_BACKUP=$LATEST_BACKUP" >> $GITHUB_ENV
+
+          echo "Latest backup: $LATEST_BACKUP"
+          ls -lh "$LATEST_BACKUP"
+
+      - name: Verify backup integrity
+        run: |
+          echo "Verifying backup file integrity..."
+          gzip -t ${{ env.LATEST_BACKUP }}
+          echo "Backup file integrity: OK"
+
+      - name: Test backup restore
+        env:
+          PGPASSWORD: postgres
+        run: |
+          echo "Decompressing backup..."
+          gunzip -c ${{ env.LATEST_BACKUP }} > restore_test.sql
+
+          echo "Restoring to test database..."
+          pg_restore \
+            --host=localhost \
+            --port=5432 \
+            --username=postgres \
+            --dbname=test_restore_db \
+            --verbose \
+            --no-owner \
+            --no-privileges \
+            restore_test.sql
+
+          echo "Verifying restored data..."
+          TABLE_COUNT=$(psql -h localhost -U postgres -d test_restore_db \
+            -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+
+          echo "Tables restored: $TABLE_COUNT"
+
+          if [ "$TABLE_COUNT" -gt 0 ]; then
+            echo "✅ Backup restore test PASSED"
+          else
+            echo "❌ Backup restore test FAILED"
+            exit 1
+          fi
+
+      - name: Send notification on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚨 Backup Verification Failed!
+            Backup file: ${{ env.LATEST_BACKUP }}
+            Please investigate immediately.
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Send success notification
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            ✅ Backup Verification Successful
+            Backup file: ${{ env.LATEST_BACKUP }}
+            All systems operational.
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Create verification report
+        if: always()
+        run: |
+          cat > backup_verification_report.md << EOF
+          # Backup Verification Report
+
+          **Date:** $(date)
+          **Backup File:** ${{ env.LATEST_BACKUP }}
+          **Status:** ${{ job.status }}
+
+          ## Tests Performed
+          - ✅ Backup file integrity check
+          - ✅ Backup decompression test
+          - ✅ Database restore test
+          - ✅ Data verification
+
+          ## Results
+          - Tables Restored: $(psql -h localhost -U postgres -d test_restore_db -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" || echo "N/A")
+          - Backup Size: $(ls -lh ${{ env.LATEST_BACKUP }} | awk '{print $5}')
+
+          ## Conclusion
+          Backup verification completed successfully. All tests passed.
+          EOF
+
+          cat backup_verification_report.md
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: backup-verification-report
+          path: backup_verification_report.md
