@@ -263,26 +263,31 @@ cp src/main/resources/application.properties.example src/main/resources/applicat
 nano src/main/resources/application.properties
 ```
 
-**Required Configuration**:
-```properties
-# Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/crud_test_db
-spring.datasource.username=postgres
-spring.datasource.password=postgres
+**⚠️ SECURITY WARNING**: Never commit real credentials to version control!
 
-# Redis
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
+**Required Configuration** (use environment variables):
+```bash
+# Set environment variables instead of hardcoding credentials
+export DB_URL=jdbc:postgresql://localhost:5432/crud_test_db
+export DB_USERNAME=postgres
+export DB_PASSWORD=your_secure_password
 
-# JWT
-jwt.secret=your-secret-key-here
-jwt.expiration=86400000
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
 
-# Email
-spring.mail.host=smtp.gmail.com
-spring.mail.username=your-email@gmail.com
-spring.mail.password=your-app-password
+export JWT_SECRET=your_secure_random_secret_key_min_256_bits
+export JWT_EXPIRATION=86400000
+
+export SMTP_HOST=smtp.gmail.com
+export SMTP_PORT=587
+export SMTP_USERNAME=your_email_username
+export SMTP_PASSWORD=your_app_specific_password
+export MAIL_FROM_ADDRESS=noreply@yourdomain.com
+
+export ADMIN_PASSWORD=your_secure_admin_password
 ```
+
+The application reads all sensitive values from environment variables. See `application.properties` for the complete list of configurable properties.
 
 #### 5. Start Backend
 
