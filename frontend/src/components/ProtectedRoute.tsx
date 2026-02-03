@@ -1,13 +1,13 @@
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuthStore();
 
   if (loading) {
     return (

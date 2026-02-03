@@ -1,37 +1,26 @@
 import React, { useState, useEffect, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore, useUserStore } from '../stores';
 import UserEditModal from './UserEditModal';
-import api from '../services/api';
 import { User } from '../types';
 import '../styles/UserDashboard.css';
 
 const UserDashboard: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
+
+  // Auth store
+  const { user: currentUser, logout, canManageUser } = useAuthStore();
+
+  // User store
+  const { users, loading, error, fetchUsers } = useUserStore();
+
+  // Local state
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
 
-  const { user: currentUser, logout, canManageUser } = useAuth();
-  const navigate = useNavigate();
-
   useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await api.getUsers();
-      setUsers(response.data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load users');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleLogout = (): void => {
     logout();
@@ -43,24 +32,24 @@ const UserDashboard: React.FC = () => {
   };
 
   const handleDelete = async (userId: number): Promise<void> => {
+    const deleteUser = useUserStore.getState().deleteUser;
+
     try {
-      await api.deleteUser(userId);
+      await deleteUser(userId);
       setDeleteConfirm(null);
 
       // If user deleted themselves, logout
       if (currentUser && userId === currentUser.id) {
         handleLogout();
-      } else {
-        loadUsers();
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to delete user');
+      console.error('Delete error:', err);
     }
   };
 
   const handleUpdateSuccess = (): void => {
     setEditingUser(null);
-    loadUsers();
+    fetchUsers();
   };
 
   if (!currentUser) {

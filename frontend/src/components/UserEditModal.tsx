@@ -1,6 +1,5 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import { useAuthStore, useUserStore } from '../stores';
 import { User } from '../types';
 import '../styles/UserEditModal.css';
 
@@ -18,7 +17,9 @@ interface UserFormData {
 }
 
 const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSuccess }) => {
-  const { isAdmin } = useAuth();
+  const isAdmin = useAuthStore((state) => state.isAdmin);
+  const updateUser = useUserStore((state) => state.updateUser);
+
   const [formData, setFormData] = useState<UserFormData>({
     username: user.username,
     email: user.email,
@@ -67,7 +68,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, onClose, onSuccess 
         return;
       }
 
-      await api.updateUser(user.id, updateData);
+      await updateUser(user.id, updateData);
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to update user');

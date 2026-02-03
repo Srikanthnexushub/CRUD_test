@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores';
 import '../styles/LoginForm.css';
 
 interface LoginFormData {
@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setFormData({

@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
+import { useAuthStore } from '../stores';
 import { ApiError } from '../types';
 import './RegistrationForm.css';
 
@@ -18,6 +18,8 @@ interface FormErrors {
 
 const RegistrationForm: React.FC = () => {
   const navigate = useNavigate();
+  const register = useAuthStore((state) => state.register);
+
   const [formData, setFormData] = useState<RegistrationFormData>({
     username: '',
     email: '',
@@ -98,24 +100,28 @@ const RegistrationForm: React.FC = () => {
     setSuccessMessage('');
 
     try {
-      // Call API
-      await api.register(formData);
+      // Call API through Zustand store
+      const result = await register(formData.username, formData.email, formData.password);
 
-      // Success
-      setSuccessMessage(`User ${formData.username} registered successfully! Redirecting to login...`);
+      if (result.success) {
+        // Success
+        setSuccessMessage(`User ${formData.username} registered successfully! Redirecting to login...`);
 
-      // Clear form
-      setFormData({
-        username: '',
-        email: '',
-        password: '',
-      });
-      setErrors({});
+        // Clear form
+        setFormData({
+          username: '',
+          email: '',
+          password: '',
+        });
+        setErrors({});
 
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setApiError({ message: result.error || 'Registration failed' });
+      }
     } catch (error: any) {
       // Error from backend
       setApiError(error as ApiError);
